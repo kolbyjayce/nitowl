@@ -1,16 +1,31 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, nativeTheme } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { buildMenu } from './menu'
 import icon from '../../resources/icon.png?asset'
+
+const overlayFor = (dark: boolean): { color: string; symbolColor: string; height: number } => ({
+  color: dark ? '#121317' : '#f6f5f1',
+  symbolColor: dark ? '#f3f2ee' : '#1b1d23',
+  height: 48
+})
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
+    minWidth: 720,
+    minHeight: 480,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#121317' : '#f6f5f1',
+    // Windowless: no native title bar, content runs edge to edge.
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    ...(process.platform === 'darwin'
+      ? { trafficLightPosition: { x: 16, y: 16 } }
+      : { titleBarOverlay: overlayFor(nativeTheme.shouldUseDarkColors) }),
+    ...(process.platform !== 'darwin' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -40,7 +55,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.nitowl.app')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -49,8 +64,15 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // Keep the Windows/Linux window controls overlay in step with the app theme.
+  ipcMain.on('title-bar-theme', (event, theme: 'light' | 'dark') => {
+    if (process.platform === 'darwin') return
+    BrowserWindow.fromWebContents(event.sender)?.setTitleBarOverlay(overlayFor(theme === 'dark'))
+  })
+
+  buildMenu()
+
+  if (process.platform === 'darwin') app.dock?.setIcon(icon)
 
   createWindow()
 

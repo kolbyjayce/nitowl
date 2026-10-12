@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/jetbrains-mono';
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * NitOwl design tokens — source: Figma "NitOwl" → Component Library.
+ * Figma has no variables defined, so values are lifted from the components.
+ * Dark theme is not in Figma yet: it is derived from the light palette (section 3).
+ */
+
+/* ── 1. Raw palette ─────────────────────────────────────────── */
+:root {
+  --nitowl-ink: #1b1d23; /* primary text, approve button */
+  --nitowl-indigo: #4b40ee; /* active / current / your turn */
+  --nitowl-teal: #12a594; /* approved / done */
+  --nitowl-teal-tint: #eaf7f3; /* done background */
+  --nitowl-orange: #ff7a45; /* flagged / request changes */
+  --nitowl-line: #dcd9d2; /* borders */
+  --nitowl-canvas: #f6f5f1; /* panel / page surface */
+  --nitowl-slate: #8b8f9c; /* secondary text */
+  --nitowl-mist: #a8abb2; /* tertiary text, not-started */
+  --nitowl-locked: #bdbfc4; /* locked graph nodes */
+}
+
+/* ── 2. shadcn semantic tokens (light) ──────────────────────── */
+:root {
+  --radius: 0.625rem; /* 10px — action button; card = +2px, tab = -1px, badge = -3px */
+
+  --background: var(--nitowl-canvas);
+  --foreground: var(--nitowl-ink);
+  --card: #ffffff;
+  --card-foreground: var(--nitowl-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--nitowl-ink);
+
+  --primary: var(--nitowl-ink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--nitowl-canvas);
+  --secondary-foreground: var(--nitowl-ink);
+  --muted: var(--nitowl-canvas);
+  --muted-foreground: var(--nitowl-slate);
+  /* shadcn's "accent" is the neutral hover/selected surface, not a brand color. */
+  --accent: #eeede7;
+  --accent-foreground: var(--nitowl-ink);
+  --destructive: var(--nitowl-orange);
+  --destructive-foreground: #ffffff;
+
+  --border: var(--nitowl-line);
+  --input: var(--nitowl-line);
+  --ring: var(--nitowl-indigo);
+
+  /* NitOwl review-state tokens */
+  --active: var(--nitowl-indigo);
+  --active-foreground: #ffffff;
+  --success: var(--nitowl-teal);
+  --success-foreground: #ffffff;
+  --success-tint: var(--nitowl-teal-tint);
+  --flagged: var(--nitowl-orange);
+  --flagged-foreground: #ffffff;
+  --subtle-foreground: var(--nitowl-mist);
+  --locked-foreground: var(--nitowl-locked);
+
+  --chart-1: var(--nitowl-indigo);
+  --chart-2: var(--nitowl-teal);
+  --chart-3: var(--nitowl-orange);
+  --chart-4: var(--nitowl-slate);
+  --chart-5: var(--nitowl-ink);
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--nitowl-ink);
+  --sidebar-primary: var(--nitowl-ink);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eeede7;
+  --sidebar-accent-foreground: var(--nitowl-ink);
+  --sidebar-border: var(--nitowl-line);
+  --sidebar-ring: var(--nitowl-indigo);
+}
+
+/* ── 3. Dark ────────────────────────────────────────────────── */
+/* Same hues as light, on an ink-based surface ladder:
+   background < card (ink) < popover/muted. State colors are lifted slightly
+   so they hold ≥4.5:1 on dark; tints become translucent teal. */
+.dark {
+  color-scheme: dark;
+
+  --background: #121317;
+  --foreground: #f3f2ee;
+  --card: var(--nitowl-ink);
+  --card-foreground: #f3f2ee;
+  --popover: #20222a;
+  --popover-foreground: #f3f2ee;
+
+  --primary: #f3f2ee;
+  --primary-foreground: var(--nitowl-ink);
+  --secondary: #20222a;
+  --secondary-foreground: #f3f2ee;
+  --muted: #20222a;
+  --muted-foreground: #9a9eab;
+  --accent: #272a33;
+  --accent-foreground: #f3f2ee;
+  --destructive: #ff8a5b;
+  --destructive-foreground: var(--nitowl-ink);
+
+  --border: #2e313a;
+  --input: #2e313a;
+  --ring: #7a72ff;
+
+  --active: #6b62ff;
+  --success: #1fb8a6;
+  --success-foreground: var(--nitowl-ink);
+  --success-tint: color-mix(in oklab, var(--nitowl-teal) 18%, transparent);
+  --flagged: #ff8a5b;
+  --flagged-foreground: var(--nitowl-ink);
+  --subtle-foreground: #737785;
+  --locked-foreground: #4a4d57;
+
+  --chart-1: #6b62ff;
+  --chart-2: #1fb8a6;
+  --chart-3: #ff8a5b;
+  --chart-4: #9a9eab;
+  --chart-5: #f3f2ee;
+
+  --sidebar: var(--nitowl-ink);
+  --sidebar-foreground: #f3f2ee;
+  --sidebar-primary: #6b62ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #20222a;
+  --sidebar-accent-foreground: #f3f2ee;
+  --sidebar-border: #2e313a;
+  --sidebar-ring: #7a72ff;
+}
+
+/* ── 4. Tailwind theme mapping ──────────────────────────────── */
+@theme inline {
+  --font-sans: 'Space Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type scale used in Figma: 11 meta/badge · 12 node label · 13 id/tab · 15 title/button */
+  --text-meta: 0.6875rem;
+  --text-label: 0.75rem;
+  --text-tab: 0.8125rem;
+  --text-body: 0.9375rem;
+
+  --radius-sm: calc(var(--radius) - 3px); /* 7px badge */
+  --radius-md: calc(var(--radius) - 1px); /* 9px ring tab */
+  --radius-lg: var(--radius); /* 10px button */
+  --radius-xl: calc(var(--radius) + 2px); /* 12px card / PR row */
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-active: var(--active);
+  --color-active-foreground: var(--active-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-tint: var(--success-tint);
+  --color-flagged: var(--flagged);
+  --color-flagged-foreground: var(--flagged-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-locked-foreground: var(--locked-foreground);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ── 5. Base ────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--active) 28%, transparent);
+  }
+  code,
+  kbd,
+  pre,
+  samp {
+    @apply font-mono;
+  }
+}
+
+/* ── 6. Windowless window: drag regions ─────────────────────── */
+.drag {
+  -webkit-app-region: drag;
+}
+.no-drag,
+.drag button,
+.drag a,
+.drag input {
+  -webkit-app-region: no-drag;
+}

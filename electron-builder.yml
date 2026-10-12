@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: nitowl
+appId: com.nitowl.app
+productName: NitOwl
 directories:
   buildResources: build
 files:

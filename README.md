@@ -1,6 +1,15 @@
-# nitowl
+<p align="center">
+  <img src="build/icon.png" alt="NitOwl" width="120" />
+</p>
 
-An Electron application with React and TypeScript
+<h1 align="center">NitOwl</h1>
+
+<p align="center">
+  Code review as a call graph. Review a pull request one ring at a time, from the functions that
+  matter most outward, and clear your inbox of PRs waiting on you.
+</p>
+
+Built with Electron, React, TypeScript, Tailwind CSS v4 and shadcn/ui.
 
 ## Recommended IDE Setup
 

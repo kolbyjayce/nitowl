@@ -89,7 +89,7 @@ Use semantic tokens in components, never raw hex.
 - **Locked**: Locked-grey dot and label (future ring)
 - **Active**: Ink dot, solid indigo halo, ink label (reviewable now)
 - **Current**: Indigo dot, dashed indigo halo, indigo label (open in the panel)
-- **Approved**: Teal dot with a white bold `✓` (you signed off)
+- **Approved**: Teal dot with a bold `✓` (white in light mode, ink in dark mode) (you signed off)
 - **Flagged**: Orange dot, orange halo, orange label (you requested changes)
 
 ### Ring Tab (one ring of the review)
@@ -102,11 +102,11 @@ Use semantic tokens in components, never raw hex.
 
 ### Action Button (chunk-level decision)
 
-Space Grotesk Medium 15px, white text, padding 24×16, radius 10px, lowercase labels.
+Space Grotesk Medium 15px, padding 24×16, radius 10px, lowercase labels.
 
-- **Approve** ("approve chunk"): Ink fill
-- **Approved**: Teal fill
-- **Request changes**: Orange fill; opens a note
+- **Approve** ("approve chunk"): Ink fill, white text
+- **Approved**: Teal fill, ink text
+- **Request changes**: Orange fill, ink text; opens a note
 
 ### PR Row (a pull request in the inbox)
 

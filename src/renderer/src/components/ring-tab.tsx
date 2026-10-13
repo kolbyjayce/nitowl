@@ -22,7 +22,7 @@ export function RingTab({
   count,
   className,
   ...props
-}: Omit<React.ComponentProps<'button'>, 'children'> &
+}: Omit<React.ComponentProps<'button'>, 'children' | 'disabled'> &
   VariantProps<typeof ringTabVariants> & { ring: string; count: string }): React.JSX.Element {
   return (
     <button

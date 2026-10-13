@@ -9,7 +9,8 @@ import { Gallery } from '@renderer/gallery'
 function SettingsView({ onBack }: { onBack: () => void }): React.JSX.Element {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onBack()
+      // Radix overlays (e.g. the Components dropdown) preventDefault when Escape dismisses them
+      if (e.key === 'Escape' && !e.defaultPrevented) onBack()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)

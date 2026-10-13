@@ -59,7 +59,7 @@ export function GraphNode({
         {halo && <span className={haloVariants({ state })} />}
         <span className={dotVariants({ state })}>
           {state === 'approved' && (
-            <span className="font-mono text-[9px] leading-none font-bold text-success-foreground">
+            <span className="font-mono text-[9px] leading-none font-bold text-primary-foreground">
               ✓
             </span>
           )}

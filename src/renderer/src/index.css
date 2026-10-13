@@ -46,7 +46,7 @@
   --accent: #eeede7;
   --accent-foreground: var(--nitowl-ink);
   --destructive: var(--nitowl-orange);
-  --destructive-foreground: #ffffff;
+  --destructive-foreground: var(--nitowl-ink);
 
   --border: var(--nitowl-line);
   --input: var(--nitowl-line);
@@ -56,7 +56,7 @@
   --active: var(--nitowl-indigo);
   --active-foreground: #ffffff;
   --success: var(--nitowl-teal);
-  --success-foreground: #ffffff;
+  --success-foreground: var(--nitowl-ink);
   --success-tint: var(--nitowl-teal-tint);
   --flagged: var(--nitowl-orange);
   --flagged-foreground: #ffffff;

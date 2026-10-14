@@ -4,7 +4,7 @@ const isMac = process.platform === 'darwin'
 
 function openSettings(): void {
   const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
-  win?.webContents.send('navigate', 'settings')
+  win?.webContents.send('open-settings')
 }
 
 const settingsItem: MenuItemConstructorOptions = {

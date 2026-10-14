@@ -1,10 +1,15 @@
 import { app, shell, BrowserWindow, ipcMain, nativeTheme } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { electronApp, is } from '@electron-toolkit/utils'
 import { buildMenu } from './menu'
+import { toggleDevTools, watchShortcuts } from './shortcuts'
+import { Auth } from './services/auth'
 import icon from '../../resources/icon.png?asset'
 
-const overlayFor = (dark: boolean): { color: string; symbolColor: string; height: number } => ({
+// Without this the app menu, About panel and dock use package.json's "nitowl" (or "Electron" in dev).
+app.setName('NitOwl')
+
+const overlayFor =(dark: boolean): { color: string; symbolColor: string; height: number } => ({
   color: dark ? '#121317' : '#f6f5f1',
   symbolColor: dark ? '#f3f2ee' : '#1b1d23',
   height: 48
@@ -57,17 +62,61 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.nitowl.app')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+  // DevTools (F12 / Ctrl+Shift+I / Cmd+Opt+I) and Settings (Ctrl/Cmd+,) in every build;
+  // ignore CommandOrControl + R in production.
   app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
+    watchShortcuts(window)
   })
+
+  ipcMain.on('devtools:toggle', (event) => toggleDevTools(event.sender))
 
   // Keep the Windows/Linux window controls overlay in step with the app theme.
   ipcMain.on('title-bar-theme', (event, theme: 'light' | 'dark') => {
     if (process.platform === 'darwin') return
     BrowserWindow.fromWebContents(event.sender)?.setTitleBarOverlay(overlayFor(theme === 'dark'))
+  })
+
+  const auth = new Auth()
+
+  ipcMain.handle('auth:status', () => ({
+    authenticated: auth.isAuthenticated
+  }))
+
+  ipcMain.handle('auth:user', async () => {
+    return auth.getUser()
+  })
+
+  ipcMain.handle('auth:login', async () => {
+    const { userCode, verificationUri } = await auth.startDeviceFlow()
+    return { userCode, verificationUri }
+  })
+
+  ipcMain.handle('auth:open-browser', (_, url: string) => {
+    let parsed: URL
+    try {
+      parsed = new URL(String(url))
+    } catch (e) {
+      return
+    }
+
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'github.com')
+      return
+
+    return shell.openExternal(parsed.toString())
+  })
+
+  ipcMain.handle('auth:wait', async () => {
+    // Poll until the token lands (checked every 500ms, up to 10 min)
+    const deadline = Date.now() + 10 * 60 * 1000
+    while (!auth.isAuthenticated && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 500))
+    }
+    return { authenticated: auth.isAuthenticated }
+  })
+
+  ipcMain.handle('auth:logout', () => {
+    auth.logout()
+    return { authenticated: false }
   })
 
   buildMenu()

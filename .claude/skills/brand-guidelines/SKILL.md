@@ -153,7 +153,8 @@ Rule: state colors are lifted slightly in dark to hold contrast on dark surfaces
 - shadcn config is in `components.json` (components in `src/renderer/src/components/ui`); add components with `npx shadcn@latest add <name>`
 - Generated shadcn components pick up the brand through tokens (`bg-primary`, `border-border`, `ring-ring`, `rounded-*`). After adding one, check for hard-coded `text-sm` (use `text-body`/`text-tab`/`text-meta`), `shadow-*` (the design has none) and `rounded-full` on badges (NitOwl uses `rounded-sm`)
 - NitOwl-specific components (`GraphNode`, `RingTab`, `PrRow`) live in `src/renderer/src/components`; `Button` and `Badge` carry the extra `active`, `success` and `flagged` variants
-- `src/renderer/src/gallery.tsx` is the living component gallery. It is only reachable from the native menu: NitOwl → Settings… (⌘,) on macOS, File → Settings… (Ctrl+,) elsewhere, then the Components tab
+- `src/renderer/src/gallery.tsx` is the living component gallery. Open the settings dialog (title-bar gear, Ctrl/⌘+, or the native menu's Settings…), then the Components section
+- Dialogs (`ui/dialog.tsx`, from shadcn) float on a `bg-black/40` scrim: card surface, 1px border, `rounded-xl`, no shadow. Overlay and content carry `no-drag` so the title bar's drag region doesn't swallow clicks under them
 - `Logo` (`components/logo.tsx`) renders `assets/owl-solid.png` / `owl-outline.png` as a mask, so it takes `currentColor`. App icons in `build/` and `resources/` are the solid owl in Canvas on an Ink rounded square
 - The window is frameless (`hiddenInset` on macOS, `hidden` + overlay elsewhere); `TitleBar` is the drag region
 

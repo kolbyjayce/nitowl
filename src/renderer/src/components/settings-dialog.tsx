@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Bug, LogOut } from 'lucide-react'
 import type { GitHubUser } from '../../../preload/index.d'
 import { ThemeSwitcher } from '@renderer/components/theme-switcher'
@@ -133,10 +133,37 @@ function SettingsDialog({
   user: GitHubUser | null
   onSignOut: () => Promise<void>
 }): React.JSX.Element {
+  // Remember what had focus before opening. Read during render because Radix moves focus
+  // into the dialog as soon as it mounts, before any effect here would run.
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const wasOpenRef = useRef(false)
+  if (open && !wasOpenRef.current) {
+    const active = document.activeElement
+    returnFocusRef.current =
+      active instanceof HTMLElement && active !== document.body ? active : null
+  }
+  wasOpenRef.current = open
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         aria-describedby={undefined}
+        onCloseAutoFocus={(event) => {
+          // Opened from the native menu or a shortcut: nothing was focused, so fall back to the
+          // app root instead of dropping focus on <body>.
+          event.preventDefault()
+          const target = returnFocusRef.current
+          returnFocusRef.current = null
+          if (target?.isConnected) {
+            target.focus()
+            return
+          }
+          const root = document.getElementById('root')
+          if (root) {
+            if (!root.hasAttribute('tabindex')) root.tabIndex = -1
+            root.focus({ preventScroll: true })
+          }
+        }}
         className="flex h-[min(560px,85vh)] flex-col gap-0 p-0 sm:max-w-3xl"
       >
         <div className="flex h-14 shrink-0 items-center border-b px-6">

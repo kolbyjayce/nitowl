@@ -24,14 +24,15 @@ export function watchShortcuts(window: BrowserWindow): void {
       input.code === 'F12' ||
       (input.code === 'KeyI' && ((input.control && input.shift) || (input.meta && input.alt)))
     if (devTools) {
-      toggleDevTools(webContents)
+      // Holding the key repeats keyDown; toggle once but keep swallowing the repeats.
+      if (!input.isAutoRepeat) toggleDevTools(webContents)
       event.preventDefault()
       return
     }
 
     // Opening is idempotent, so a double fire with the macOS menu accelerator is harmless.
     if (input.code === 'Comma' && mod) {
-      webContents.send('open-settings')
+      if (!input.isAutoRepeat) webContents.send('open-settings')
       event.preventDefault()
       return
     }

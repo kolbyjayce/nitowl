@@ -24,7 +24,7 @@ const api = {
     login: (): Promise<{ userCode: string; verificationUri: string }> =>
       ipcRenderer.invoke('auth:login'),
     openBrowser: (url: string): Promise<void> => ipcRenderer.invoke('auth:open-browser', url),
-    wait: (): Promise<{ authenticated: boolean }> => ipcRenderer.invoke('auth:wait'),
+    wait: (): Promise<{ authenticated: boolean; error: string | null }> => ipcRenderer.invoke('auth:wait'),
     logout: (): Promise<{ authenticated: boolean }> => ipcRenderer.invoke('auth:logout')
   }
 }

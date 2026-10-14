@@ -106,12 +106,9 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('auth:wait', async () => {
-    // Poll until the token lands (checked every 500ms, up to 10 min)
-    const deadline = Date.now() + 10 * 60 * 1000
-    while (!auth.isAuthenticated && Date.now() < deadline) {
-      await new Promise((r) => setTimeout(r, 500))
-    }
-    return { authenticated: auth.isAuthenticated }
+    // Resolves on success, terminal failure (access_denied, expired_token, network error),
+    // or when the flow is superseded/cancelled.
+    return auth.waitForFlow()
   })
 
   ipcMain.handle('auth:logout', () => {

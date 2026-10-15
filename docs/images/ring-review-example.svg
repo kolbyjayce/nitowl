@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 522" role="img" aria-label="Review starts at the most-connected change and moves outward" font-family="'Space Grotesk', ui-sans-serif, system-ui, sans-serif" font-size="13">
+  <rect width="760" height="522" fill="#f6f5f1"/>
+  <text x="24" y="30" font-size="15" font-weight="600" fill="#1b1d23">Review starts at the most-connected change and moves outward</text>
+  <text x="24" y="50" font-size="11.5" fill="#8b8f9c">Example PR: add rate limiting to login, mid-review with R2 in progress</text>
+
+  <!-- Rings -->
+  <g fill="none" stroke-width="1.25">
+    <circle cx="250" cy="290" r="208" stroke="#dcd9d2"/>
+    <circle cx="250" cy="290" r="132" stroke="#4b40ee"/>
+    <circle cx="250" cy="290" r="56" stroke="#dcd9d2"/>
+  </g>
+  <g font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11.5" font-weight="700">
+    <text x="200" y="286" fill="#8b8f9c">R1</text>
+    <text x="124" y="286" fill="#1b1d23">R2</text>
+    <text x="48" y="286" fill="#8b8f9c">R3</text>
+  </g>
+
+  <!-- Edges -->
+  <g stroke="#a8abb2" stroke-width="1.25">
+    <line x1="250" y1="290" x2="250" y2="158"/>
+    <line x1="250" y1="290" x2="364" y2="356"/>
+    <line x1="250" y1="290" x2="136" y2="356"/>
+    <line x1="250" y1="158" x2="394" y2="140"/>
+    <line x1="364" y1="356" x2="455" y2="254"/>
+    <line x1="250" y1="158" x2="147" y2="151" stroke-dasharray="4 4"/>
+  </g>
+
+  <!-- Nodes -->
+  <g font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11.5">
+    <circle cx="250" cy="290" r="7" fill="#12a594"/>
+    <text x="250" y="340" text-anchor="middle" fill="#1b1d23">checkRateLimit</text>
+
+    <circle cx="250" cy="158" r="7" fill="#1b1d23"/>
+    <text x="250" y="140" text-anchor="middle" fill="#1b1d23">RateLimitStore.incr</text>
+
+    <circle cx="364" cy="356" r="13" fill="none" stroke="#4b40ee" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <circle cx="364" cy="356" r="7" fill="#4b40ee"/>
+    <text x="384" y="360" font-weight="700" fill="#1b1d23">login</text>
+
+    <circle cx="136" cy="356" r="7" fill="#1b1d23"/>
+    <text x="122" y="360" text-anchor="end" fill="#1b1d23">refreshToken</text>
+
+    <circle cx="394" cy="140" r="7" fill="#bdbfc4"/>
+    <text x="394" y="122" text-anchor="middle" fill="#8b8f9c">resetLimits</text>
+
+    <circle cx="455" cy="254" r="7" fill="#bdbfc4"/>
+    <text x="455" y="236" text-anchor="middle" fill="#8b8f9c">loginHandler</text>
+
+    <circle cx="140" cy="150" r="7" fill="none" stroke="#a8abb2" stroke-width="1.25" stroke-dasharray="2 2"/>
+    <text x="140" y="126" text-anchor="middle" fill="#8b8f9c">redisClient.get, unchanged</text>
+  </g>
+
+  <!-- Legend -->
+  <g font-size="11.5">
+    <text x="540" y="100" font-size="13" font-weight="600" fill="#1b1d23">Node states</text>
+    <circle cx="552" cy="124" r="7" fill="#12a594"/>
+    <text x="572" y="128" fill="#1b1d23">Approved</text>
+    <circle cx="552" cy="152" r="12" fill="none" stroke="#4b40ee" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <circle cx="552" cy="152" r="7" fill="#4b40ee"/>
+    <text x="572" y="156" fill="#1b1d23">Current, open now</text>
+    <circle cx="552" cy="180" r="7" fill="#1b1d23"/>
+    <text x="572" y="184" fill="#1b1d23">To review in this ring</text>
+    <circle cx="552" cy="208" r="7" fill="#ff7a45"/>
+    <text x="572" y="212" fill="#1b1d23">Flagged, comment added</text>
+    <circle cx="552" cy="236" r="7" fill="#bdbfc4"/>
+    <text x="572" y="240" fill="#1b1d23">Later ring, read-only</text>
+    <circle cx="552" cy="264" r="7" fill="none" stroke="#a8abb2" stroke-width="1.25" stroke-dasharray="2 2"/>
+    <text x="572" y="268" fill="#1b1d23">Unchanged code, on demand</text>
+
+    <text x="540" y="304" fill="#8b8f9c">Inside a ring, called code</text>
+    <text x="540" y="320" fill="#8b8f9c">comes before its callers.</text>
+  </g>
+
+  <!-- Loose ring -->
+  <rect x="540" y="352" width="196" height="72" rx="8" fill="#ffffff" stroke="#dcd9d2" stroke-width="1.25"/>
+  <text x="556" y="378" font-weight="600" fill="#1b1d23">Loose ring, after R3</text>
+  <circle cx="564" cy="402" r="7" fill="#bdbfc4"/>
+  <text x="578" y="406" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="10.5" fill="#8b8f9c">defaultConfig, no links</text>
+</svg>

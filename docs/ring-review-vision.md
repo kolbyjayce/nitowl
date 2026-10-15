@@ -82,8 +82,8 @@ however many inner functions it has.
 
 - **Edges.** A call or reference anywhere inside a chunk, nested functions included, is an edge
   from that chunk. `useUserData()` called inside a `useEffect` links `UserCard` to `useUserData`.
-- **JSX is a reference.** `<Avatar />` inside `UserCard` links `UserCard` to `Avatar`, so `Avatar`
-  is reviewed first.
+- **JSX is a reference.** `<Avatar />` inside `UserCard` links `UserCard` to `Avatar`. If both land
+  in the same ring, `Avatar` comes first.
 - **Internal calls don't count.** Calls between a chunk's own nested functions never become edges.
 - **Score.** Lines changed include every nested function in the chunk.
 - **Code panel.** Shows the whole chunk and labels each change by the nested function it sits in.

@@ -38,8 +38,9 @@ only the PR's changed chunks.
 1. **Build the code graph.** Run graphify on the PR's head commit. graphify works at the file level
    today, so it needs symbol-level nodes (functions and methods, with line ranges) to support
    chunks.
-2. **Map hunks to chunks.** Assign each diff hunk to the smallest function that contains it. Hunks
-   outside any function go to that file's chunk.
+2. **Map hunks to chunks.** Assign each diff hunk to the smallest function that contains it. A
+   hunk that spans several functions is split at function boundaries: each function's changed
+   lines go to that function's chunk. Changed lines outside any function go to that file's chunk.
 3. **Build the PR graph.** Keep only chunks and the edges between them. Add an indirect edge when
    two changed chunks are linked through exactly one unchanged function. Ignore direction here, but
    keep it for step 8.
@@ -50,8 +51,9 @@ only the PR's changed chunks.
 6. **Assign rings.** Search outward from all centers together. A chunk's ring = its distance to the
    nearest center + 1.
 7. **Collect the loose ring.** Chunks with no links at all go into a final Loose ring.
-8. **Order each ring callees-first.** Inside a ring, code that is called comes before the code that
-   calls it. Where calls form a loop, the higher score goes first.
+8. **Order each ring: used before user.** Inside a ring, code that is called or referenced comes
+   before the code that calls or references it. Calls and references count the same. Where they
+   form a loop, the higher score goes first.
 
 Proposed default to tune once real PRs run through it: rings past R4 merge into one **R4+** ring,
 because outer rings tend to get thin.
@@ -63,7 +65,7 @@ until their turn.
 
 1. **Pick a PR from the inbox.** NitOwl builds the rings and opens R1.
 2. **Review chunks in order.** The first chunk in the ring is Current. Others in the ring are
-   Active. Order is callees-first.
+   Active. Code that is used comes before the code that uses it.
 3. **Approve or flag each chunk.** Flagging adds a comment on that chunk's lines. It doesn't block
    the ring.
 4. **Finish the ring.** When every chunk is approved or flagged, the ring turns done and the next
@@ -100,7 +102,7 @@ When the last ring is done, NitOwl sends one GitHub review: **Approve** if nothi
 
 ## Decisions and open questions
 
-Eight product decisions are settled; seven questions are still open.
+Nine product decisions are settled; seven questions are still open.
 
 | Question                      | Decision                                                                        | Why                                                           |
 | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -108,7 +110,8 @@ Eight product decisions are settled; seven questions are still open.
 | Unrelated clusters in one PR? | One shared ring set: R1 holds every cluster's center                            | Keeps one line of ring tabs and the existing locking flow     |
 | What is one dot?              | A changed function (a chunk)                                                    | A function edited in three places stays one thing to review   |
 | How strict is gating?         | Soft lock: later rings are read-only until their turn                           | Guides the order without trapping the reviewer                |
-| Order inside a ring?          | Callees first                                                                   | You see the building blocks before the code that uses them    |
+| Order inside a ring?          | Used before user: called or referenced code comes first                         | You see the building blocks before the code that uses them    |
+| Hunk spanning functions?      | Split at function boundaries                                                    | Keeps one dot per function                                    |
 | What does a flag do?          | Adds a comment; the ring can still finish                                       | Problems are recorded without stalling the review             |
 | How does unchanged code show? | Ghost nodes, on demand                                                          | Context when you want it, a clean graph when you don't        |
 | What goes to GitHub?          | One review at the end                                                           | One notification for the author, with a clear verdict         |

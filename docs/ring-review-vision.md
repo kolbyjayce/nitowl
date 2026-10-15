@@ -18,17 +18,17 @@ Pitch: **review the heart of the change first, then work outward.**
 
 A chunk is the unit you review; everything else describes how chunks are grouped and ordered.
 
-| Term          | What it is                                                                                                                                                                                      |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chunk         | One changed function or method, holding every diff hunk inside it. Hunks outside any function (imports, top-level constants) group into one chunk per file. Each chunk is one dot on the graph. |
-| Edge          | A call or reference between two chunks, taken from the graphify graph.                                                                                                                          |
-| Indirect edge | An edge through exactly one unchanged function: changed `A` calls unchanged `B`, which calls changed `C`, so `A` links to `C`.                                                                  |
-| Score         | How central a chunk is: links to other changed chunks × log(lines changed + 1).                                                                                                                 |
-| Cluster       | A group of chunks connected to each other. A PR with unrelated changes has several.                                                                                                             |
-| Center        | The highest-scoring chunk in each cluster. All centers make up R1.                                                                                                                              |
-| Ring          | R1 is the centers. R2 is everything one hop from any center, R3 two hops, and so on.                                                                                                            |
-| Loose ring    | Chunks with no links to other changed code, reviewed last.                                                                                                                                      |
-| Ghost node    | Unchanged code shown on demand for context. Never reviewed, never counted.                                                                                                                      |
+| Term          | What it is                                                                                                                                                                                                                                                                                                 |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chunk         | One changed top-level declaration (a function, component, custom hook or class method), holding every diff hunk inside it, including hunks in its nested functions. Hunks outside any declaration (imports, types, top-level constants) group into one chunk per file. Each chunk is one dot on the graph. |
+| Edge          | A call or reference between two chunks, taken from the graphify graph.                                                                                                                                                                                                                                     |
+| Indirect edge | An edge through exactly one unchanged function: changed `A` calls unchanged `B`, which calls changed `C`, so `A` links to `C`.                                                                                                                                                                             |
+| Score         | How central a chunk is: links to other changed chunks × log(lines changed + 1).                                                                                                                                                                                                                            |
+| Cluster       | A group of chunks connected to each other. A PR with unrelated changes has several.                                                                                                                                                                                                                        |
+| Center        | The highest-scoring chunk in each cluster. All centers make up R1.                                                                                                                                                                                                                                         |
+| Ring          | R1 is the centers. R2 is everything one hop from any center, R3 two hops, and so on.                                                                                                                                                                                                                       |
+| Loose ring    | Chunks with no links to other changed code, reviewed last.                                                                                                                                                                                                                                                 |
+| Ghost node    | Unchanged code shown on demand for context. Never reviewed, never counted.                                                                                                                                                                                                                                 |
 
 ## How rings are built
 
@@ -36,11 +36,13 @@ Rings come from graph distance: one search outward from every center at once, ru
 only the PR's changed chunks.
 
 1. **Build the code graph.** Run graphify on the PR's head commit. graphify works at the file level
-   today, so it needs symbol-level nodes (functions and methods, with line ranges) to support
-   chunks.
-2. **Map hunks to chunks.** Assign each diff hunk to the smallest function that contains it. A
-   hunk that spans several functions is split at function boundaries: each function's changed
-   lines go to that function's chunk. Changed lines outside any function go to that file's chunk.
+   today, so it needs symbol-level nodes to support chunks: top-level functions, components, hooks
+   and methods, with line ranges and the nested functions inside them.
+2. **Map hunks to chunks.** Assign each diff hunk to the top-level declaration that contains it;
+   nested functions fold into their parent (see
+   [Nested functions and React](#nested-functions-and-react)). A hunk that spans several top-level
+   declarations is split at their boundaries: each declaration's changed lines go to its chunk.
+   Changed lines outside any declaration go to that file's chunk.
 3. **Build the PR graph.** Keep only chunks and the edges between them. Add an indirect edge when
    two changed chunks are linked through exactly one unchanged function. Ignore direction here, but
    keep it for step 8.
@@ -57,6 +59,38 @@ only the PR's changed chunks.
 
 Proposed default to tune once real PRs run through it: rings past R4 merge into one **R4+** ring,
 because outer rings tend to get thin.
+
+## Nested functions and React
+
+A chunk is always a top-level declaration. Everything nested inside it (hook callbacks, event
+handlers, `.map` callbacks, helper closures) folds into that chunk, so a React component is one dot
+however many inner functions it has.
+
+**What counts as a top-level declaration**
+
+| Code                                                                    | Chunk                                                        |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `function UserCard() {}` or `const UserCard = () => {}`                 | `UserCard`                                                   |
+| `const UserCard = memo(() => {})`, `forwardRef(...)` or another wrapper | `UserCard`, the variable the wrapped function is assigned to |
+| `export default function () {}`                                         | The file's default export, shown as `UserCard.tsx (default)` |
+| `function useUserData() {}` (a custom hook)                             | `useUserData`, its own chunk                                 |
+| `class Store { save() {} }`                                             | `Store.save`: each method is its own chunk                   |
+| `const api = { get() {}, post() {} }`                                   | `api`: functions in an object literal fold into the variable |
+| Imports, types, top-level constants                                     | The file chunk                                               |
+
+**How folded code behaves**
+
+- **Edges.** A call or reference anywhere inside a chunk, nested functions included, is an edge
+  from that chunk. `useUserData()` called inside a `useEffect` links `UserCard` to `useUserData`.
+- **JSX is a reference.** `<Avatar />` inside `UserCard` links `UserCard` to `Avatar`, so `Avatar`
+  is reviewed first.
+- **Internal calls don't count.** Calls between a chunk's own nested functions never become edges.
+- **Score.** Lines changed include every nested function in the chunk.
+- **Code panel.** Shows the whole chunk and labels each change by the nested function it sits in.
+  Named functions use their name (`handleSave`). Anonymous callbacks use the hook or method they
+  are passed to, numbered in order (`useEffect #2`, `items.map #1`).
+- **Flags.** A flag anchors to the exact lines it was made on, so a comment on a change inside
+  `useEffect #2` lands on those lines in GitHub.
 
 ## The review experience
 
@@ -102,16 +136,17 @@ When the last ring is done, NitOwl sends one GitHub review: **Approve** if nothi
 
 ## Decisions and open questions
 
-Nine product decisions are settled; seven questions are still open.
+Ten product decisions are settled; seven questions are still open.
 
 | Question                      | Decision                                                                        | Why                                                           |
 | ----------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
 | What sits at the center?      | The most-connected changed chunk, ignoring direction, weighted by lines changed | Predictable, and it keeps busy helpers like loggers out of R1 |
 | Unrelated clusters in one PR? | One shared ring set: R1 holds every cluster's center                            | Keeps one line of ring tabs and the existing locking flow     |
-| What is one dot?              | A changed function (a chunk)                                                    | A function edited in three places stays one thing to review   |
+| What is one dot?              | A changed top-level function, component, hook or method (a chunk)               | A function edited in three places stays one thing to review   |
+| Nested functions?             | Fold into their top-level parent; the code panel labels where each change sits  | A component is reviewed together with its hooks and handlers  |
 | How strict is gating?         | Soft lock: later rings are read-only until their turn                           | Guides the order without trapping the reviewer                |
 | Order inside a ring?          | Used before user: called or referenced code comes first                         | You see the building blocks before the code that uses them    |
-| Hunk spanning functions?      | Split at function boundaries                                                    | Keeps one dot per function                                    |
+| Hunk spanning functions?      | Split at top-level declaration boundaries                                       | Keeps one dot per declaration                                 |
 | What does a flag do?          | Adds a comment; the ring can still finish                                       | Problems are recorded without stalling the review             |
 | How does unchanged code show? | Ghost nodes, on demand                                                          | Context when you want it, a clean graph when you don't        |
 | What goes to GitHub?          | One review at the end                                                           | One notification for the author, with a clear verdict         |
